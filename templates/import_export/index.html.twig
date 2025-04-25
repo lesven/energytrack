@@ -59,7 +59,7 @@
                         <strong>Wichtig:</strong> Der gesamte Import wird abgebrochen, wenn eine fehlerhafte Zeile erkannt wird.
                     </div>
                     
-                    {{ form_start(import_form, {'attr': {'enctype': 'multipart/form-data', 'method': 'post', 'id': 'import-form'}}) }}
+                    {{ form_start(import_form, {'attr': {'enctype': 'multipart/form-data', 'method': 'post', 'id': 'import-form', 'data-turbo': 'false'}}) }}
                         <div class="mb-3">
                             {{ form_label(import_form.csvFile, 'CSV-Datei auswählen', {'label_attr': {'class': 'form-label'}}) }}
                             {{ form_widget(import_form.csvFile, {'attr': {'class': 'form-control'}}) }}
