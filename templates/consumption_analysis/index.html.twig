@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Consumption Analysis{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Consumption Analysis</h1>
+            <div>
+                <a href="{{ path('app_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+        
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+        
+        {% if meters is empty %}
+            <div class="alert alert-warning">
+                No meters available. Please create a meter first.
+            </div>
+        {% else %}
+            <h2 class="mb-4">Select a Meter for Analysis</h2>
+            
+            <div class="row">
+                {% for meter in meters %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">{{ meter.name }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Type: {{ meter.type }}</p>
+                                {% if meter.location %}
+                                    <p class="card-text">Location: {{ meter.location }}</p>
+                                {% endif %}
+                                <div class="btn-group mt-3" role="group">
+                                    <a href="{{ path('app_consumption_analysis_average', {'id': meter.id}) }}" class="btn btn-outline-primary">Average Consumption</a>
+                                    <a href="{{ path('app_consumption_analysis_custom', {'id': meter.id}) }}" class="btn btn-outline-primary">Custom Period</a>
+                                    <a href="{{ path('app_consumption_analysis_compare', {'id': meter.id}) }}" class="btn btn-outline-primary">Compare Periods</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

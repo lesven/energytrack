@@ -1,0 +1,51 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Reading - Energy Consumption Tracker{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_meter_reading_index') }}">Readings</a></li>
+            <li class="breadcrumb-item active">New Reading</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h3 mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Reading</h1>
+        </div>
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                <div class="mb-3">
+                    {{ form_label(form.meter, 'Select Meter', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.meter, {'attr': {'class': 'form-select'}}) }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.value, 'Reading Value', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.value, {'attr': {'class': 'form-control', 'placeholder': 'e.g. 123.45'}}) }}
+                    <div class="form-text">Enter the value shown on the meter.</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.readingDate, 'Reading Date', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.readingDate, {'attr': {'class': 'form-control'}}) }}
+                    <div class="form-text">When was this reading taken?</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.note, 'Notes', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.note, {'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Any additional information...'}}) }}
+                    <div class="form-text">Optional notes about this reading.</div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ path('app_meter_reading_index') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Save Reading
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

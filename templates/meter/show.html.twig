@@ -1,0 +1,150 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ meter.name }} - Energy Consumption Tracker{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_meter_index') }}">Meters</a></li>
+            <li class="breadcrumb-item active">{{ meter.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h2 class="h4 mb-0">
+                        {% if meter.type == 'electricity' %}
+                            <i class="fas fa-bolt text-warning me-2"></i>
+                        {% elseif meter.type == 'gas' %}
+                            <i class="fas fa-fire text-danger me-2"></i>
+                        {% elseif meter.type == 'water' %}
+                            <i class="fas fa-tint text-info me-2"></i>
+                        {% else %}
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                        {% endif %}
+                        {{ meter.name }}
+                    </h2>
+                    <div>
+                        <a href="{{ path('app_meter_edit', {'id': meter.id}) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-edit me-1"></i> Edit
+                        </a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th style="width: 150px;">Type</th>
+                                <td>
+                                    {% if meter.type == 'electricity' %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-bolt me-1"></i> Electricity
+                                        </span>
+                                    {% elseif meter.type == 'gas' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-fire me-1"></i> Gas
+                                        </span>
+                                    {% elseif meter.type == 'water' %}
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-tint me-1"></i> Water
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">
+                                            {{ meter.type }}
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Location</th>
+                                <td>{{ meter.location ?: 'Not specified' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Description</th>
+                                <td>{{ meter.description ?: 'No description available' }}</td>
+                            </tr>
+                            <tr>
+                                <th>Created</th>
+                                <td>{{ meter.createdAt|date('d.m.Y H:i') }}</td>
+                            </tr>
+                            <tr>
+                                <th>Last Updated</th>
+                                <td>{{ meter.updatedAt ? meter.updatedAt|date('d.m.Y H:i') : 'Never' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info bg-opacity-25">
+                    <h3 class="h5 mb-0">
+                        <i class="fas fa-clipboard-list me-2"></i>
+                        Recent Readings
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% if meter.readings|length > 0 %}
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reading in meter.readings|slice(0, 5) %}
+                                    <tr>
+                                        <td>{{ reading.readingDate|date('d.m.Y') }}</td>
+                                        <td>{{ reading.value }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p class="text-center text-muted mt-3">
+                            <i class="fas fa-info-circle me-1"></i>
+                            No readings yet
+                        </p>
+                    {% endif %}
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ path('app_meter_reading_new') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i> Add New Reading
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the meter "{{ meter.name }}"?</p>
+                    <p class="text-danger"><small>This will also delete all associated readings.</small></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form method="post" action="{{ path('app_meter_delete', {'id': meter.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ meter.id) }}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

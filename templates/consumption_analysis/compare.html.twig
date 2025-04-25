@@ -1,0 +1,134 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Compare Periods Analysis{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Period Comparison: {{ meter.name }}</h1>
+            <div>
+                <a href="{{ path('app_consumption_analysis_index') }}" class="btn btn-secondary">Back to Analysis</a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Select Time Periods</h2>
+                    </div>
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'data-turbo': 'false'}}) }}
+                            <h3 class="h6 mb-2">First Period</h3>
+                            <div class="mb-3">
+                                {{ form_label(form.firstPeriodStart) }}
+                                {{ form_widget(form.firstPeriodStart, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.firstPeriodStart) }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form_label(form.firstPeriodEnd) }}
+                                {{ form_widget(form.firstPeriodEnd, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.firstPeriodEnd) }}
+                            </div>
+                            
+                            <h3 class="h6 mb-2 mt-4">Second Period</h3>
+                            <div class="mb-3">
+                                {{ form_label(form.secondPeriodStart) }}
+                                {{ form_widget(form.secondPeriodStart, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.secondPeriodStart) }}
+                            </div>
+                            
+                            <div class="mb-3">
+                                {{ form_label(form.secondPeriodEnd) }}
+                                {{ form_widget(form.secondPeriodEnd, {'attr': {'class': 'form-control'}}) }}
+                                {{ form_errors(form.secondPeriodEnd) }}
+                            </div>
+                            
+                            <div class="d-grid mt-4">
+                                {{ form_widget(form.compare) }}
+                            </div>
+                            
+                            {{ form_rest(form) }}
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Meter Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> {{ meter.name }}</p>
+                        <p><strong>Type:</strong> {{ meter.type }}</p>
+                        <p><strong>Location:</strong> {{ meter.location ?: 'Not specified' }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Comparison Results</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if firstPeriodConsumption is not null and secondPeriodConsumption is not null %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Period</th>
+                                            <th>Consumption</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>First Period</td>
+                                            <td>{{ firstPeriodConsumption|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Second Period</td>
+                                            <td>{{ secondPeriodConsumption|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="mt-4">
+                                <h3 class="h5">Comparison Summary</h3>
+                                
+                                <div class="card {% if percentageDifference > 0 %}bg-danger-subtle{% else %}bg-success-subtle{% endif %} mt-2">
+                                    <div class="card-body">
+                                        {% if percentageDifference > 0 %}
+                                            <p class="mb-0">The second period shows a <strong>{{ percentageDifference|abs|number_format(2) }}% increase</strong> in consumption compared to the first period.</p>
+                                        {% elseif percentageDifference < 0 %}
+                                            <p class="mb-0">The second period shows a <strong>{{ percentageDifference|abs|number_format(2) }}% decrease</strong> in consumption compared to the first period.</p>
+                                        {% else %}
+                                            <p class="mb-0">Both periods show <strong>identical consumption</strong>.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        Note: Comparisons are calculated based on the first and last reading within each selected period.
+                                        For accurate results, ensure that readings are available at or near the start and end dates of each period.
+                                    </small>
+                                </div>
+                            </div>
+                        {% elseif formSubmitted %}
+                            <div class="alert alert-warning">
+                                Not enough readings in one or both of the selected periods to calculate consumption.
+                                Please ensure there are at least two readings within each selected date range.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                Select two time periods and click Compare to view the consumption comparison.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

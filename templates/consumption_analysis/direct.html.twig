@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Custom Period Analysis{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Custom Period Analysis: {{ meter.name }}</h1>
+            <div>
+                <a href="{{ path('app_consumption_analysis_index') }}" class="btn btn-secondary">Back to Analysis</a>
+            </div>
+        </div>
+
+        {% if errors is not empty %}
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Select Time Period</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="{{ path('app_consumption_analysis_direct', {'id': meter.id}) }}" data-turbo="false">
+                            <div class="mb-3">
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" id="startDate" name="startDate" class="form-control" 
+                                       value="{{ startDate }}" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="endDate" class="form-label">End Date</label>
+                                <input type="date" id="endDate" name="endDate" class="form-control" 
+                                       value="{{ endDate }}" required>
+                            </div>
+                            
+                            <input type="hidden" name="_token" value="{{ csrfToken }}">
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Calculate</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Debug Information -->
+                {% if app.environment == 'dev' %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Debug Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <pre class="small">{{ debugInfo|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Meter Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Name:</strong> {{ meter.name }}</p>
+                        <p><strong>Type:</strong> {{ meter.type }}</p>
+                        <p><strong>Location:</strong> {{ meter.location ?: 'Not specified' }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="h5 mb-0">Consumption Results</h2>
+                    </div>
+                    <div class="card-body">
+                        {% if totalConsumption is not null %}
+                            <div class="alert alert-success">
+                                <h3 class="h4">Total Consumption: {{ totalConsumption|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}</h3>
+                            </div>
+                            
+                            {% if readingsInRange|length > 1 %}
+                                <h4 class="h6 mt-4">Readings in Selected Period</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Value</th>
+                                                <th>Note</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for reading in readingsInRange %}
+                                                <tr>
+                                                    <td>{{ reading.readingDate|date('Y-m-d') }}</td>
+                                                    <td>{{ reading.value }}</td>
+                                                    <td>{{ reading.note ?: '' }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
+                        {% elseif isSubmitted %}
+                            <div class="alert alert-warning">
+                                Not enough readings in the selected period to calculate consumption.
+                                Please ensure there are at least two readings within the selected date range.
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                Select a date range and click Calculate to view consumption data.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

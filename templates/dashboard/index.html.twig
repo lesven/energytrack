@@ -1,0 +1,272 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Energy Consumption Tracker{% endblock %}
+
+{% block body %}
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="fas fa-tachometer-alt me-2"></i>
+                Dashboard
+            </h1>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase">Total Meters</h6>
+                            <h2 class="mb-0">{{ total_meters }}</h2>
+                        </div>
+                        <i class="fas fa-tachometer-alt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a href="{{ path('app_meter_index') }}" class="text-white text-decoration-none">View All Meters</a>
+                    <i class="fas fa-angle-right text-white"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase">Electricity Meters</h6>
+                            <h2 class="mb-0">{{ meters_by_type.electricity }}</h2>
+                        </div>
+                        <i class="fas fa-bolt fa-2x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="text-dark">Electricity Consumption</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase">Gas Meters</h6>
+                            <h2 class="mb-0">{{ meters_by_type.gas }}</h2>
+                        </div>
+                        <i class="fas fa-fire fa-2x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="text-white">Gas Consumption</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase">Water Meters</h6>
+                            <h2 class="mb-0">{{ meters_by_type.water }}</h2>
+                        </div>
+                        <i class="fas fa-tint fa-2x opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <span class="text-white">Water Consumption</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Quick Access -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Consumption Analysis</h5>
+                    <a href="{{ path('app_consumption_analysis_index') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-chart-line me-1"></i> All Analysis Options
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="d-grid">
+                                <a href="{{ path('app_consumption_analysis_index') }}#average" class="btn btn-outline-primary btn-lg">
+                                    <i class="fas fa-calculator fa-2x mb-2"></i>
+                                    <br>
+                                    Average Consumption
+                                    <p class="small text-muted mt-2 mb-0">Weekly, monthly, and quarterly averages</p>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="d-grid">
+                                <a href="{{ path('app_consumption_analysis_index') }}#custom" class="btn btn-outline-success btn-lg">
+                                    <i class="fas fa-calendar-alt fa-2x mb-2"></i>
+                                    <br>
+                                    Custom Period Analysis
+                                    <p class="small text-muted mt-2 mb-0">Calculate consumption for specific time periods</p>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-grid">
+                                <a href="{{ path('app_consumption_analysis_index') }}#compare" class="btn btn-outline-info btn-lg">
+                                    <i class="fas fa-balance-scale fa-2x mb-2"></i>
+                                    <br>
+                                    Compare Periods
+                                    <p class="small text-muted mt-2 mb-0">Compare consumption between different time periods</p>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Meters List -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Your Meters</h5>
+                    <a href="{{ path('app_meter_new') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Meter
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if meters is empty %}
+                        <div class="text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-tachometer-alt fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted">No meters found. Get started by adding your first meter.</p>
+                            <a href="{{ path('app_meter_new') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add Your First Meter
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Location</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for meter in meters %}
+                                        <tr>
+                                            <td>{{ meter.name }}</td>
+                                            <td>
+                                                {% if meter.type == 'electricity' %}
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-bolt me-1"></i> Electricity
+                                                    </span>
+                                                {% elseif meter.type == 'gas' %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fas fa-fire me-1"></i> Gas
+                                                    </span>
+                                                {% elseif meter.type == 'water' %}
+                                                    <span class="badge bg-info">
+                                                        <i class="fas fa-tint me-1"></i> Water
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        {{ meter.type }}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ meter.location ?: 'N/A' }}</td>
+                                            <td class="text-end">
+                                                <a href="{{ path('app_meter_show', {'id': meter.id}) }}" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Readings -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Readings</h5>
+                    <a href="{{ path('app_meter_reading_new') }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i> Add Reading
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_readings is empty %}
+                        <div class="text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-clipboard-list fa-3x text-muted"></i>
+                            </div>
+                            <p class="text-muted">No readings found. Add your first reading to start tracking consumption.</p>
+                            <a href="{{ path('app_meter_reading_new') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i> Add Your First Reading
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Meter</th>
+                                        <th>Date</th>
+                                        <th>Value</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reading in recent_readings %}
+                                        <tr>
+                                            <td>
+                                                {% if reading.meter.type == 'electricity' %}
+                                                    <i class="fas fa-bolt text-warning me-1"></i>
+                                                {% elseif reading.meter.type == 'gas' %}
+                                                    <i class="fas fa-fire text-danger me-1"></i>
+                                                {% elseif reading.meter.type == 'water' %}
+                                                    <i class="fas fa-tint text-info me-1"></i>
+                                                {% endif %}
+                                                {{ reading.meter.name }}
+                                            </td>
+                                            <td>{{ reading.readingDate|date('d.m.Y') }}</td>
+                                            <td>{{ reading.value }}</td>
+                                            <td class="text-end">
+                                                <a href="{{ path('app_meter_reading_show', {'id': reading.id}) }}" class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-2">
+                            <a href="{{ path('app_meter_reading_index') }}" class="btn btn-sm btn-outline-secondary">
+                                View All Readings
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

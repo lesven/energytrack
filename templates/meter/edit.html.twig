@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit {{ meter.name }} - Energy Consumption Tracker{% endblock %}
+
+{% block body %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_meter_index') }}">Meters</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_meter_show', {'id': meter.id}) }}">{{ meter.name }}</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h1 class="h3 mb-0"><i class="fas fa-edit me-2"></i>Edit Meter</h1>
+        </div>
+        <div class="card-body">
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                <div class="mb-3">
+                    {{ form_label(form.name, 'Meter Name', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+                    <div class="form-text">Enter a descriptive name for the meter.</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.type, 'Meter Type', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.type, {'attr': {'class': 'form-control', 'list': 'type-options'}}) }}
+                    <datalist id="type-options">
+                        <option value="electricity">
+                        <option value="gas">
+                        <option value="water">
+                    </datalist>
+                    <div class="form-text">Specify the type of consumption (electricity, gas, water).</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.location, 'Location', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+                    <div class="form-text">Where is this meter installed? (Optional)</div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+                    <div class="form-text">Additional details about this meter. (Optional)</div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{{ path('app_meter_show', {'id': meter.id}) }}" class="btn btn-secondary me-md-2">Cancel</a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i> Save Changes
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}

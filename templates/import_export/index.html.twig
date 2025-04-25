@@ -1,0 +1,292 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Import/Export - Energy Consumption Tracker{% endblock %}
+
+{% block body %}
+    <div class="row mb-4">
+        <div class="col">
+            <h1>
+                <i class="fas fa-file-import me-2"></i>
+                Import/Export
+            </h1>
+        </div>
+    </div>
+
+    {# Flash-Nachrichten anzeigen (Erfolg, Fehler, etc.) #}
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="row">
+        <!-- Import Section -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-upload me-2"></i>CSV-Import</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Importieren Sie Ihre Zählerstände aus einer CSV-Datei. 
+                        Die Datei muss folgende Spalten enthalten:
+                    </p>
+                    
+                    <div class="bg-light p-3 mb-4 rounded">
+                        <h5>CSV-Format</h5>
+                        <code>meter_type,reading_value,reading_date</code>
+                        <hr>
+                        <p class="mb-0"><small>Beispiel:</small></p>
+                        <code>
+                            meter_type,reading_value,reading_date<br>
+                            electricity,12345.67,2025-04-20<br>
+                            gas,5678.90,2025-04-20<br>
+                            water,1234.56,2025-04-20
+                        </code>
+                        <hr>
+                        <ul class="small mb-0">
+                            <li><strong>meter_type:</strong> electricity, gas, water</li>
+                            <li><strong>reading_value:</strong> Zählerstand (Dezimalzahl)</li>
+                            <li><strong>reading_date:</strong> Datum im Format YYYY-MM-DD</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Wichtig:</strong> Der gesamte Import wird abgebrochen, wenn eine fehlerhafte Zeile erkannt wird.
+                    </div>
+                    
+                    {{ form_start(import_form, {'attr': {'enctype': 'multipart/form-data', 'method': 'post', 'id': 'import-form'}}) }}
+                        <div class="mb-3">
+                            {{ form_label(import_form.csvFile, 'CSV-Datei auswählen', {'label_attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(import_form.csvFile, {'attr': {'class': 'form-control'}}) }}
+                            <div class="form-text">
+                                {{ form_errors(import_form.csvFile) }}
+                                Maximale Größe: 1 MB
+                            </div>
+                        </div>
+                        <div class="d-grid">
+                            {{ form_widget(import_form.import, {'attr': {'class': 'btn btn-primary'}}) }}
+                        </div>
+                    {{ form_end(import_form) }}
+                    
+                    {% if import_result is defined and import_result %}
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check me-2"></i>
+                            Import erfolgreich! {{ import_result.count }} Zählerstände wurden importiert.
+                        </div>
+                    {% endif %}
+                    
+                    {# Debug-Informationen immer anzeigen, wenn sie vorhanden sind #}
+                    {% if debug_info is defined and debug_info|length > 0 %}
+                        <div class="alert alert-info mt-3 overflow-auto">
+                            <h5>Debug-Informationen:</h5>
+                            <pre>{{ debug_info|json_encode(constant('JSON_PRETTY_PRINT'))|raw }}</pre>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export Section -->
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-download me-2"></i>CSV-Export</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-4">
+                        Exportieren Sie alle erfassten Zählerstände als CSV-Datei für Sicherungen oder
+                        zur Weiterverarbeitung in anderen Programmen.
+                    </p>
+                    
+                    <div class="bg-light p-3 mb-4 rounded">
+                        <h5>Enthaltene Daten</h5>
+                        <ul class="mb-0">
+                            <li>Alle Zählerstände aus der Datenbank</li>
+                            <li>Sortiert nach Datum (neueste zuerst)</li>
+                            <li>Format: CSV mit Spalten <code>meter_type,reading_value,reading_date</code></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{{ path('app_export_csv') }}" class="btn btn-success">
+                            <i class="fas fa-file-download me-2"></i>
+                            CSV-Datei exportieren
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h2 class="h4 mb-0"><i class="fas fa-info-circle me-2"></i>Hinweise zum CSV-Import</h2>
+                </div>
+                <div class="card-body">
+                    <h5>Häufige Probleme beim Import</h5>
+                    <ul>
+                        <li><strong>Dateiformat:</strong> Die Datei muss eine gültige CSV-Datei sein mit Komma als Trennzeichen.</li>
+                        <li><strong>Header:</strong> Die erste Zeile muss die Header <code>meter_type,reading_value,reading_date</code> enthalten.</li>
+                        <li><strong>Zählertypen:</strong> Nur <code>electricity</code>, <code>gas</code> oder <code>water</code> sind erlaubt.</li>
+                        <li><strong>Zahlenwerte:</strong> Zahlen können mit Punkt oder Komma als Dezimaltrennzeichen angegeben werden.</li>
+                        <li><strong>Datum:</strong> Das Datum muss im Format <code>YYYY-MM-DD</code> sein, z.B. <code>2025-04-25</code>.</li>
+                    </ul>
+                    
+                    <h5 class="mt-4">Beispiel für eine korrekt formatierte CSV-Datei</h5>
+                    <pre class="bg-light p-3 rounded">meter_type,reading_value,reading_date
+electricity,12345.67,2025-04-20
+gas,5678.90,2025-04-21
+water,1234.56,2025-04-22</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if app.session.flashBag.peek('success')|length > 0 %}
+        <div class="alert alert-success mt-3">
+            {% for message in app.flashes('success') %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if app.session.flashBag.peek('danger')|length > 0 %}
+        <div class="alert alert-danger mt-3">
+            {% for message in app.flashes('danger') %}
+                {{ message }}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if import_result is defined and import_result is not null %}
+        <div class="card mt-3">
+            <div class="card-header">Import Ergebnis</div>
+            <div class="card-body">
+                <p><strong>Status:</strong> {{ import_result.status }}</p>
+                <p><strong>Anzahl importierter Datensätze:</strong> {{ import_result.count }}</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    {% if app.environment == 'dev' %}
+        <div class="card mt-3 mb-5">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Debug-Informationen</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <p><strong>Hinweis:</strong> Diese Informationen sind nur in der Entwicklungsumgebung sichtbar.</p>
+                </div>
+                
+                {% if debug_info is defined and debug_info is not null %}
+                    <h5>Allgemeine Informationen:</h5>
+                    <ul>
+                        <li><strong>Request-Methode:</strong> {{ debug_info.request_method }}</li>
+                        <li><strong>Formular abgesendet:</strong> {{ debug_info.form_submitted ? 'Ja' : 'Nein' }}</li>
+                        {% if debug_info.form_valid is defined %}
+                            <li><strong>Formular gültig:</strong> {{ debug_info.form_valid ? 'Ja' : 'Nein' }}</li>
+                        {% endif %}
+                    </ul>
+                
+                    {% if debug_info.file is defined %}
+                        <h5>Datei-Informationen:</h5>
+                        <ul>
+                            <li><strong>Name:</strong> {{ debug_info.file.name }}</li>
+                            <li><strong>MIME-Typ:</strong> {{ debug_info.file.mime_type }}</li>
+                            <li><strong>Größe:</strong> {{ debug_info.file.size }} Bytes</li>
+                        </ul>
+                        
+                        {% if debug_info.file_preview is defined %}
+                            <h5>Datei-Vorschau:</h5>
+                            <pre class="bg-light p-2">{{ debug_info.file_preview }}</pre>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if debug_info.form_errors is defined and debug_info.form_errors|length > 0 %}
+                        <h5 class="text-danger">Formular-Fehler:</h5>
+                        <ul class="list-group">
+                            {% for error in debug_info.form_errors %}
+                                <li class="list-group-item list-group-item-danger">{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                    
+                    {% if debug_info.error is defined %}
+                        <h5 class="text-danger">Fehler:</hhe5>
+                        {% if debug_info.error is iterable %}
+                            <p><strong>Nachricht:</strong> {{ debug_info.error.message }}</p>
+                            <div class="accordion" id="errorTraceAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingErrorTrace">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                                data-bs-target="#collapseErrorTrace" aria-expanded="false" 
+                                                aria-controls="collapseErrorTrace">
+                                            Stack Trace anzeigen
+                                        </button>
+                                    </h2>
+                                    <div id="collapseErrorTrace" class="accordion-collapse collapse" 
+                                         aria-labelledby="headingErrorTrace" data-bs-parent="#errorTraceAccordion">
+                                        <div class="accordion-body">
+                                            <pre class="bg-light p-2" style="max-height: 300px; overflow-y: auto;">{{ debug_info.error.trace }}</pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-danger">{{ debug_info.error }}</p>
+                        {% endif %}
+                    {% endif %}
+                    
+                    {% if debug_info.import_result is defined %}
+                        <h5>Import-Ergebnis:</h5>
+                        <ul>
+                            <li><strong>Status:</strong> {{ debug_info.import_result.status }}</li>
+                            <li><strong>Anzahl:</strong> {{ debug_info.import_result.count }}</li>
+                        </ul>
+                    {% endif %}
+                    
+                    {% if debug_info.flashes is defined and debug_info.flashes|length > 0 %}
+                        <h5>Flash-Nachrichten:</h5>
+                        {% for type, messages in debug_info.flashes %}
+                            <div class="mb-2">
+                                <strong>{{ type }}:</strong>
+                                <ul>
+                                    {% for message in messages %}
+                                        <li>{{ message }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% else %}
+                    <p>Keine Debug-Informationen verfügbar.</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Entwicklungsprotokoll:</h5>
+                <p>Das vollständige Protokoll finden Sie unter: <code>var/log/dev.log</code></p>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Debug-Ausgabe für das Formular
+    console.log('Formular geladen:', document.getElementById('import-form'));
+    
+    // Event-Listener für Formular-Absendung
+    document.getElementById('import-form').addEventListener('submit', function(e) {
+        console.log('Formular wird abgesendet, Methode:', this.method);
+    });
+});
+</script>
+{% endblock %}
