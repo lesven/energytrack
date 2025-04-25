@@ -404,4 +404,35 @@ class ImportExportController extends AbstractController
     {
         return $this->container->get('request_stack')->getSession()->getFlashBag();
     }
+
+    #[Route('/delete', name: 'app_import_export_delete', methods: ['POST'])]
+    public function deleteByType(Request $request, MeterRepository $meterRepository, MeterReadingRepository $readingRepository): Response
+    {
+        $submittedToken = $request->request->get('_csrf_token');
+        if (!$this->isCsrfTokenValid('delete_meter_readings', $submittedToken)) {
+            $this->addFlash('danger', 'Ungültiges CSRF-Token.');
+            return $this->redirectToRoute('app_import_export');
+        }
+
+        $type = $request->request->get('meter_type');
+        if (!in_array($type, ['electricity', 'gas', 'water'], true)) {
+            $this->addFlash('danger', 'Ungültiger Zählertyp.');
+            return $this->redirectToRoute('app_import_export');
+        }
+
+        $meters = $meterRepository->findBy(['type' => $type]);
+        $deletedCount = 0;
+        foreach ($meters as $meter) {
+            $deleted = $readingRepository->createQueryBuilder('r')
+                ->delete()
+                ->where('r.meter = :meter')
+                ->setParameter('meter', $meter)
+                ->getQuery()
+                ->execute();
+            $deletedCount += $deleted;
+        }
+
+        $this->addFlash('success', sprintf('%d Zählerstände für %s gelöscht.', $deletedCount, ucfirst($type)));
+        return $this->redirectToRoute('app_import_export');
+    }
 }
