@@ -35,53 +35,62 @@
                 <h2 class="h5 mb-0">Average Consumption</h2>
             </div>
             <div class="card-body">
-                {% if weeklyAverage is null and monthlyAverage is null and quarterlyAverage is null %}
+                {% if yearlyData is empty %}
                     <div class="alert alert-info">
-                        Not enough readings to calculate average consumption. Please add at least two readings with different dates.
+                        Nicht genügend Messwerte vorhanden, um den Durchschnitt zu berechnen. Bitte füge mindestens zwei Messwerte mit unterschiedlichen Daten hinzu.
                     </div>
                 {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Period</th>
-                                    <th>Average Consumption</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>Weekly</td>
-                                    <td>
-                                        {% if weeklyAverage is not null %}
-                                            {{ weeklyAverage|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Not available</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Monthly</td>
-                                    <td>
-                                        {% if monthlyAverage is not null %}
-                                            {{ monthlyAverage|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Not available</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Quarterly</td>
-                                    <td>
-                                        {% if quarterlyAverage is not null %}
-                                            {{ quarterlyAverage|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %}
-                                        {% else %}
-                                            <span class="text-muted">Not available</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    {% for year, period in yearlyData %}
+                        <h3 class="mt-4">{{ year }}</h3>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Zeitraum</th>
+                                        <th>Durchschnittlicher Verbrauch</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Wöchentlich</td>
+                                        <td>
+                                            {% for w, val in period.weeks %}
+                                                {% if val is not null %}
+                                                    {{ val|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %} (KW {{ w }})<br>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Nicht verfügbar</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Monatlich</td>
+                                        <td>
+                                            {% for m, val in period.monthly %}
+                                                {% if val is not null %}
+                                                    {{ val|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %} (Monat {{ m }})<br>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Nicht verfügbar</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vierteljährlich</td>
+                                        <td>
+                                            {% for q, val in period.quarterly %}
+                                                {% if val is not null %}
+                                                    {{ val|number_format(2) }} {% if meter.type == 'electricity' %}kWh{% elseif meter.type == 'gas' %}m³{% elseif meter.type == 'water' %}m³{% endif %} (Q{{ q }})<br>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">Nicht verfügbar</span>
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endfor %}
                     <div class="mt-3">
                         <small class="text-muted">
                             Note: Averages are calculated based on the first and last reading for this meter.
