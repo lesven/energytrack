@@ -1,0 +1,55 @@
+{# templates/meter_reading/batch_new.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Batch Meter Readings{% endblock %}
+
+{% block body %}
+    <h1>Enter Batch Meter Readings</h1>
+
+    {{ form_start(form) }}
+
+    {# Display general form errors #}
+    {{ form_errors(form) }}
+
+    {# Render the common reading date field #}
+    {{ form_row(form.readingDate) }}
+
+    <h2>Readings</h2>
+    {# Display errors specific to the readings collection (e.g., "at least one reading required") #}
+    {{ form_errors(form.readings) }}
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Meter</th>
+                <th>Reading Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {# Iterate through the collection of single reading forms #}
+            {% for readingForm in form.readings %}
+                <tr>
+                    <td>
+                        {# Access the meter associated with this specific reading DTO #}
+                        {{ readingForm.vars.data.meter.name }} ({{ readingForm.vars.data.meter.type }})
+                        {# You could add hidden field for meter ID if needed, but DTO holds it #}
+                        {# {{ form_widget(readingForm.meter) }} #}
+                    </td>
+                    <td>
+                        {# Render the input field for the value #}
+                        {{ form_widget(readingForm.value, {'attr': {'class': 'form-control', 'placeholder': 'Enter reading...'}}) }}
+                        {# Display errors specific to this value input #}
+                        {{ form_errors(readingForm.value) }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {{ form_row(form.save) }}
+
+    {{ form_end(form) }}
+
+    <a href="{{ path('app_meter_reading_index') }}" class="btn btn-secondary mt-3">Back to list</a>
+
+{% endblock %}
