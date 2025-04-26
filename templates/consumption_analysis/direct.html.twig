@@ -57,7 +57,11 @@
                         <h2 class="h5 mb-0">Debug Information</h2>
                     </div>
                     <div class="card-body">
-                        <pre class="small">{{ debugInfo|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                        <p><strong>Form Submitted:</strong> {{ isSubmitted ? 'Yes' : 'No' }}</p>
+                        <p><strong>Start Date:</strong> {{ startDate }}</p>
+                        <p><strong>End Date:</strong> {{ endDate }}</p>
+                        <p><strong>Readings Found:</strong> {{ readingsInRange|length }}</p>
+                        <p><strong>Errors:</strong> {{ errors|length > 0 ? errors|join(', ') : 'None' }}</p>
                     </div>
                 </div>
                 {% endif %}
